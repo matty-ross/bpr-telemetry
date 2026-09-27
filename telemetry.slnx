@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="capture/capture.vcxproj" Id="6f7bfcb4-a8c8-4af2-894d-5749bc7446d8" />
+</Solution>
