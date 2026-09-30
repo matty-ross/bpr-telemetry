@@ -7,9 +7,9 @@
 
 int main()
 {
-    FILE* csvTelemetryFile = nullptr;
-    fopen_s(&csvTelemetryFile, "telemetry.csv", "w");
-    if (csvTelemetryFile == nullptr)
+    FILE* telemetryFile = nullptr;
+    fopen_s(&telemetryFile, "telemetry.csv", "w");
+    if (telemetryFile == nullptr)
     {
         return EXIT_FAILURE;
     }
@@ -17,7 +17,7 @@ int main()
     while (true)
     {
         Sleep(1000);
-        
+
         if (GetAsyncKeyState(VK_F12) & 0x8000)
         {
             break;
@@ -52,7 +52,7 @@ int main()
         ReadProcessMemory(processHandle, reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(gameModuleAddress) + 0x8EFEC0), guiPlayerInfo, sizeof(guiPlayerInfo), nullptr);
 
         fprintf_s(
-            csvTelemetryFile,
+            telemetryFile,
             "%.3f,%.3f,%.3f,%.3f,%d,%016llX\n",
             *reinterpret_cast<float*>(guiPlayerInfo + 0x0),    // Position X
             *reinterpret_cast<float*>(guiPlayerInfo + 0x4),    // Position Y
@@ -63,7 +63,7 @@ int main()
         );
     }
 
-    fclose(csvTelemetryFile);
+    fclose(telemetryFile);
 
     return EXIT_SUCCESS;
 }
