@@ -12,19 +12,33 @@
 
         <!-- Bootstrap -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
-        <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" defer></script>
         <!-- -->
 
         <link rel="icon" href="./favicon.ico" />
-        <script src="js/telemetry.js" defer></script>
+        <script src="./js/telemetry.js" defer></script>
     </head>
-    <body>
-        <div class="row g-0">
-            <div class="col-2">
-                <input id="telemetry-file" type="file" class="form-control">
+    <body class="vh-100">
+        <div class="row g-0 h-100">
+            <div class="col-4 p-5">
+                <div class="mb-3">
+                    <input id="telemetry-file" type="file" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="region-size" class="form-label">Region size</label>
+                    <input id="region-size" type="range" class="form-range" min="1" max="100">
+                </div>
+                <div class="mb-3">
+                    <label for="telemetry-data-kind" class="form-label">Telemetry data kind</label>
+                    <select id="telemetry-data-kind" class="form-select">
+                        <option value="position">Position</option>
+                        <option value="rotation">Rotation</option>
+                        <option value="speed">Speed</option>
+                    </select>
+                </div>
             </div>
-            <div class="col-10">
-                <canvas width="4096" height="4096"></canvas>
+            <div class="col-8 p-5">
+                <canvas width="4096" height="4096" style="height: 90vh; aspect-ratio: 1;"></canvas>
             </div>
         </div>
     </body>
