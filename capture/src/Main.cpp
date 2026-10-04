@@ -53,13 +53,12 @@ int main()
 
         fprintf_s(
             telemetryFile,
-            "%.3f,%.3f,%.3f,%.3f,%d,%016llX\n",
-            *reinterpret_cast<float*>(guiPlayerInfo + 0x0),    // Position X
-            *reinterpret_cast<float*>(guiPlayerInfo + 0x4),    // Position Y
-            *reinterpret_cast<float*>(guiPlayerInfo + 0x8),    // Position Z
-            *reinterpret_cast<float*>(guiPlayerInfo + 0x3C),   // Rotation
-            *reinterpret_cast<int32_t*>(guiPlayerInfo + 0x30), // Speed (mph)
-            *reinterpret_cast<uint64_t*>(guiPlayerInfo + 0x10) // Vehicle CgsID (compressed)
+            "%.3f,%.3f,%.3f,%.3f,%d\n",
+            *reinterpret_cast<float*>(guiPlayerInfo + 0x0),        // Position X
+            *reinterpret_cast<float*>(guiPlayerInfo + 0x4),        // Position Y
+            *reinterpret_cast<float*>(guiPlayerInfo + 0x8),        // Position Z
+            *reinterpret_cast<float*>(guiPlayerInfo + 0x3C),       // Rotation
+            abs(*reinterpret_cast<int32_t*>(guiPlayerInfo + 0x30)) // Speed (mph)
         );
     }
 
