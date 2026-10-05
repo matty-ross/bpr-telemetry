@@ -66,13 +66,25 @@ async function groupTelemetryItemsBySection() {
 
 function getSectionValue(telemetryItems) {
     switch (telemetryDataKind) {
-        case 'position':
+        case 'position': {
             // Number of times the player was in that section.
             return telemetryItems.length;
+        }
 
-        case 'speed':
+        case 'rotation': {
+            // Circular mean.
+            const sumSin = telemetryItems.reduce((sum, telemetryItem) => sum + Math.sin(telemetryItem.rotation), 0);
+            const sumCos = telemetryItems.reduce((sum, telemetryItem) => sum + Math.cos(telemetryItem.rotation), 0);
+            const averageRotation = Math.atan2(sumSin, sumCos);
+
+            // atan2 returns -pi to pi, bring it back to the 0 to 2 pi range
+            return (averageRotation + 2 * Math.PI) % (2 * Math.PI);
+        }
+
+        case 'speed': {
             // Average speed of the player in that section.
             return telemetryItems.reduce((sum, telemetryItem) => sum + telemetryItem.speedMPH, 0) / telemetryItems.length;
+        }
     }
 
     return null;
