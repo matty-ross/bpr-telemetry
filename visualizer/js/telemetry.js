@@ -44,46 +44,92 @@ function getSectionNumber(telemetryItem) {
     return row * telemetryPrecision + column;
 }
 
-async function groupTelemetryItemsBySection() {
+async function* readLines() {
+    const reader = telemetryFile.stream().pipeThrough(new TextDecoderStream()).getReader();
+    
+    let buffer = '';
+
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+            break;
+        }
+
+        buffer += value;
+
+        const lines = buffer.split(/\r?\n/);
+        buffer = lines.pop(); // a chunk can end in the middle of a line, keep that part for the next chunk
+        yield* lines;
+    }
+
+    if (buffer.length !== 0) {
+        yield buffer; // last line without a trailing newline
+    }
+}
+
+function accumulateTelemetryItem(accumulator, telemetryItem) {
+    switch (telemetryDataKind) {
+        case 'position': {
+            // Number of times the player was in that section.
+            return (accumulator ?? 0) + 1;
+        }
+
+        case 'rotation': {
+            // Sum of the direction vectors, for the circular mean.
+            accumulator ??= { sumSin: 0, sumCos: 0 };
+            accumulator.sumSin += Math.sin(telemetryItem.rotation);
+            accumulator.sumCos += Math.cos(telemetryItem.rotation);
+            return accumulator;
+        }
+
+        case 'speed': {
+            // Sum and count of the speeds, for the average speed.
+            accumulator ??= { sum: 0, count: 0 };
+            accumulator.sum += telemetryItem.speedMPH;
+            accumulator.count++;
+            return accumulator;
+        }
+    }
+
+    return null;
+}
+
+async function accumulateTelemetryBySection() {
     if (!telemetryFile) {
         return {};
     }
 
-    const groups = {};
+    const accumulators = {};
 
-    const content = await telemetryFile.text();
-    const telemetryItems = content.split('\n').filter(line => line.length !== 0).map(line => new TelemetryItem(line));
-    for (const telemetryItem of telemetryItems) {
-        const section = getSectionNumber(telemetryItem);
-        if (!groups[section]) {
-            groups[section] = [];
+    for await (const line of readLines()) {
+        if (line.length === 0) {
+            continue;
         }
-        groups[section].push(telemetryItem);
+
+        const telemetryItem = new TelemetryItem(line);
+        const section = getSectionNumber(telemetryItem);
+        accumulators[section] = accumulateTelemetryItem(accumulators[section], telemetryItem);
     }
 
-    return groups;
+    return accumulators;
 }
 
-function getSectionValue(telemetryItems) {
+function getSectionValue(accumulator) {
     switch (telemetryDataKind) {
         case 'position': {
-            // Number of times the player was in that section.
-            return telemetryItems.length;
+            return accumulator;
         }
 
         case 'rotation': {
             // Circular mean.
-            const sumSin = telemetryItems.reduce((sum, telemetryItem) => sum + Math.sin(telemetryItem.rotation), 0);
-            const sumCos = telemetryItems.reduce((sum, telemetryItem) => sum + Math.cos(telemetryItem.rotation), 0);
-            const averageRotation = Math.atan2(sumSin, sumCos);
+            const averageRotation = Math.atan2(accumulator.sumSin, accumulator.sumCos);
 
             // atan2 returns -pi to pi, bring it back to the 0 to 2 pi range
             return (averageRotation + 2 * Math.PI) % (2 * Math.PI);
         }
 
         case 'speed': {
-            // Average speed of the player in that section.
-            return telemetryItems.reduce((sum, telemetryItem) => sum + telemetryItem.speedMPH, 0) / telemetryItems.length;
+            return accumulator.sum / accumulator.count;
         }
     }
 
@@ -93,14 +139,14 @@ function getSectionValue(telemetryItems) {
 async function drawTelementryData() {
     canvasContext.drawImage(mapBackgroundImage, 0, 0, canvas.width, canvas.height);
 
-    const groups = await groupTelemetryItemsBySection();
+    const accumulators = await accumulateTelemetryBySection();
 
     const sectionWidth = canvas.width / telemetryPrecision;
     const sectionHeight = canvas.height / telemetryPrecision;
 
     const sectionValues = {};
-    for (const [section, telemetryItems] of Object.entries(groups)) {
-        sectionValues[section] = getSectionValue(telemetryItems);
+    for (const [section, accumulator] of Object.entries(accumulators)) {
+        sectionValues[section] = getSectionValue(accumulator);
     }
 
     const values = Object.values(sectionValues);
