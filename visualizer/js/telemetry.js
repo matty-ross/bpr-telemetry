@@ -26,6 +26,7 @@ class SectionTelemetryData {
 
 const mapBackgroundImage = new Image();
 mapBackgroundImage.src = './img/map.png';
+mapBackgroundImage.addEventListener('load', e => drawTelemetryData());
 
 const canvas = document.querySelector('canvas');
 const canvasContext = canvas.getContext('2d');
@@ -37,12 +38,6 @@ let telemetryDataKind = 'position';
 let telemetryData = {};
 
 
-/**
- * telemetry precision 3:
- *  0 1 2
- *  3 4 5
- *  6 7 8
- */
 function getSection(telemetryItem) {
     const x = (telemetryItem.positionX - BOUNDARY_LEFT) / (BOUNDARY_RIGHT - BOUNDARY_LEFT);
     const z = (telemetryItem.positionZ - BOUNDARY_TOP) / (BOUNDARY_BOTTOM - BOUNDARY_TOP);
@@ -54,6 +49,10 @@ function getSection(telemetryItem) {
 }
 
 async function* readTelemetryFile() {
+    if (!telemetryFile) {
+        return;
+    }
+
     const reader = telemetryFile.stream().pipeThrough(new TextDecoderStream()).getReader();
 
     let buffer = '';
@@ -67,24 +66,21 @@ async function* readTelemetryFile() {
         buffer += value;
 
         const lines = buffer.split(/\r?\n/);
-        buffer = lines.pop(); // a chunk can end in the middle of a line, keep that part for the next chunk
+        buffer = lines.pop(); // A chunk can end in the middle of a line, so keep that part for the next chunk.
+
         yield* lines;
     }
 
-    if (buffer.length !== 0) {
-        yield buffer; // last line without a trailing newline
+    if (buffer) {
+        yield buffer; // Last line without a trailing newline.
     }
 }
 
 async function fillTelemetryData() {
     telemetryData = {};
 
-    if (!telemetryFile) {
-        return;
-    }
-
     for await (const line of readTelemetryFile()) {
-        if (line.length === 0) {
+        if (!line) {
             continue;
         }
 
@@ -101,29 +97,38 @@ async function fillTelemetryData() {
 
 function getSectionValue(sectionTelemetryData) {
     switch (telemetryDataKind) {
-        case 'position': {
+        case 'position':
             // Number of times in that section.
             return sectionTelemetryData.count;
-        }
 
-        case 'rotation': {
+        case 'rotation':
             // Circular mean.
-            const circularMean = Math.atan2(sectionTelemetryData.sumSin, sectionTelemetryData.sumCos);
+            return Math.atan2(sectionTelemetryData.sumSin, sectionTelemetryData.sumCos);
 
-            // atan2 returns -pi to pi, bring it back to the 0 to 2 pi range
-            return (circularMean + 2 * Math.PI) % (2 * Math.PI);
-        }
-
-        case 'speed': {
+        case 'speed':
             // Average speed.
             return sectionTelemetryData.sumSpeed / sectionTelemetryData.count;
-        }
     }
 
     return null;
 }
 
-function drawTelementryData() {
+function getSectionHue(value, minValue, maxValue) {
+    switch (telemetryDataKind) {
+        case 'position':
+        case 'speed':
+            // Interpolate the section value between min and max from other sections.
+            return 240 * (1 - (maxValue === minValue ? 0 : (value - minValue) / (maxValue - minValue)));
+
+        case 'rotation':
+            // Directly use the section value.
+            return value / (2 * Math.PI) * 360;
+    }
+
+    return 0;
+}
+
+function drawTelemetryData() {
     canvasContext.drawImage(mapBackgroundImage, 0, 0, canvas.width, canvas.height);
 
     const sectionWidth = canvas.width / telemetryPrecision;
@@ -142,9 +147,7 @@ function drawTelementryData() {
         const column = section % telemetryPrecision;
         const row = Math.floor(section / telemetryPrecision);
 
-        const ratio = maxValue === minValue ? 0 : (value - minValue) / (maxValue - minValue);
-
-        canvasContext.fillStyle = `hsl(${240 * (1 - ratio)}deg 100% 50% / 75%)`;
+        canvasContext.fillStyle = `hsl(${getSectionHue(value, minValue, maxValue)}deg 100% 50% / 75%)`;
         canvasContext.fillRect(column * sectionWidth, row * sectionHeight, sectionWidth, sectionHeight);
     }
 }
@@ -154,7 +157,7 @@ const telemetryFileInput = document.querySelector('#telemetry-file');
 telemetryFileInput.addEventListener('change', async e => {
     telemetryFile = telemetryFileInput.files[0];
     await fillTelemetryData();
-    drawTelementryData();
+    drawTelemetryData();
 });
 
 const telemetryPrecisionInput = document.querySelector('#telemetry-precision');
@@ -162,14 +165,12 @@ telemetryPrecisionInput.value = telemetryPrecision;
 telemetryPrecisionInput.addEventListener('input', async e => {
     telemetryPrecision = Number(telemetryPrecisionInput.value);
     await fillTelemetryData();
-    drawTelementryData();
+    drawTelemetryData();
 });
 
 const telemetryDataKindSelect = document.querySelector('#telemetry-data-kind');
 telemetryDataKindSelect.value = telemetryDataKind;
 telemetryDataKindSelect.addEventListener('change', e => {
     telemetryDataKind = telemetryDataKindSelect.value;
-    drawTelementryData();
+    drawTelemetryData();
 });
-
-drawTelementryData();
