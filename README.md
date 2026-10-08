@@ -1,7 +1,15 @@
-# Burnout Paradise Remastered Mods Repository Telemetry
+# Burnout Paradise Remastered Telemetry
 
 ![](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 ![](https://img.shields.io/badge/Visual%20Studio-5C2D91?style=for-the-badge&logo=visual-studio&logoColor=white)
 ![](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)
 
 Burnout Paradise Remastered telemetry data capture and visualization.
+
+
+## Usage
+
+1. Run the `capture.exe` tool to capture telemetry data.
+1. Press `F12` once you're done.
+1. A CSV file containing all telemetry data will be produced.
+1. Go to <https://matty-ross.github.io/bpr-telemetry> to visualize the data.
