@@ -117,11 +117,11 @@ function getSectionHue(value, minValue, maxValue) {
     switch (telemetryDataKind) {
         case 'position':
         case 'speed':
-            // Interpolate the section value between min and max from other sections.
+            // Interpolate between min and max.
             return 240 * (1 - (maxValue === minValue ? 0 : (value - minValue) / (maxValue - minValue)));
 
         case 'rotation':
-            // Directly use the section value.
+            // Direct value.
             return value / (2 * Math.PI) * 360;
     }
 
