@@ -5,14 +5,19 @@
 #include <Windows.h>
 
 
+constexpr char k_TelemetryFileName[] = "telemetry.csv";
+
+
 int main()
 {
     FILE* telemetryFile = nullptr;
-    fopen_s(&telemetryFile, "telemetry.csv", "w");
+    fopen_s(&telemetryFile, k_TelemetryFileName, "w");
     if (telemetryFile == nullptr)
     {
         return EXIT_FAILURE;
     }
+
+    printf_s("Writing telemetry data to file '%s'.\nPress F12 to exit.\n", k_TelemetryFileName);
 
     while (true)
     {

@@ -17,7 +17,7 @@
         <link rel="icon" href="./favicon.ico" />
         <script src="./js/telemetry.js" defer></script>
     </head>
-    <body>
+    <body data-bs-theme="dark">
         <div class="row g-0">
             <div class="col-12 col-lg-4 p-5">
                 <div class="mb-3">
@@ -36,7 +36,15 @@
                     </select>
                 </div>
                 <div class="mt-5">
-                    <a href="https://github.com/matty-ross/bpr-telemetry/releases/latest" target="_blank" class="text-decoration-none">Download the capture tool</a>
+                    <ol>
+                        <li>
+                            <a href="https://github.com/matty-ross/bpr-telemetry/releases/latest" target="_blank">Download the capture tool.</a>
+                        </li>
+                        <li>Run the <code>capture_xx.exe</code> tool to capture telemetry data.</li>
+                        <li>Press <kbd>F12</kbd> once you're done.</li>
+                        <li>A CSV file containing all telemetry data will be produced.</li>
+                        <li>Upload the file into the field above to visualize the telemetry data.</li>
+                    </ol>
                 </div>
             </div>
             <div class="col-12 col-lg-8 p-5">
